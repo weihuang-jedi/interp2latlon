@@ -24,12 +24,7 @@ PROGRAM fv3interp2latlon
       print *, 'dirname: <', trim(dirname), &
                '>, data_types(', n, ') = <', trim(data_types(n)), '>'
       call initialize_tilegrid(types(n)%tile, trim(dirname), trim(data_types(n)))
-
-      if(trim(data_types(n)) == 'fv_core.res.tile') then
-         latlon%nlev = types(n)%tile(1)%nz
-      else if(trim(data_types(n)) == 'sfc_data.tile') then
-         latlon%nlay = types(n)%tile(1)%nz
-      end if
+      latlon%nlev = types(n)%tile(1)%nz
    end do
 
    if(generate_weights) then

@@ -140,9 +140,7 @@ subroutine create_coord(nt, time, latlon, flnm)
 
    integer, dimension(2) :: dimids
 
-   real(kind=8), dimension(1) :: hor
    real(kind=8), dimension(latlon%nlev) :: lev
-   real(kind=8), dimension(latlon%nlay) :: lay
 
    logical :: fileExists
 
@@ -154,30 +152,19 @@ subroutine create_coord(nt, time, latlon, flnm)
   !print *, 'latlon%nlon = ',  latlon%nlon
   !print *, 'latlon%nlat = ',  latlon%nlat
    print *, 'latlon%nlev = ',  latlon%nlev
-   print *, 'latlon%nlay = ',  latlon%nlay
 
    latlon%filename = trim(flnm)
 
    allocate(latlon%lev(latlon%nlev))
 
    do i = 1, latlon%nlev
-      latlon%lev(i) = double(i-1)
-      lev(i) = double(i-1)
+      latlon%lev(i) = dble(i-1)
+      lev(i) = dble(i-1)
    end do
-
-   allocate(latlon%lay(latlon%nlay))
-
-   do i = 1, latlon%nlay
-      latlon%lay(i) = double(i-1)
-      lay(i) = double(i-1)
-   end do
-
-   hor(1) = 0.0
 
   !print *, 'latlon%lon = ',  latlon%lon
   !print *, 'latlon%lat = ',  latlon%lat
    print *, 'latlon%lev = ',  latlon%lev
-   print *, 'latlon%lay = ',  latlon%lay
 
    rc = nf90_noerr
 
@@ -204,10 +191,6 @@ subroutine create_coord(nt, time, latlon, flnm)
    call check_status(rc)
    rc = nf90_def_dim(ncid, 'level', latlon%nlev, latlon%dimidz)
    call check_status(rc)
-   rc = nf90_def_dim(ncid, 'layer', latlon%nlay, latlon%dimidl)
-   call check_status(rc)
-   rc = nf90_def_dim(ncid, 'hor', 1, latlon%dimidh)
-   call check_status(rc)
    rc = nf90_def_dim(ncid, 'Time', NF90_UNLIMITED, latlon%dimidt)
    call check_status(rc)
 
@@ -216,7 +199,7 @@ subroutine create_coord(nt, time, latlon, flnm)
    dimids(1) = latlon%dimidx
    nd = 1
 !--Field lon
-   call nc_putAxisAttr(ncid, nd, dimids, NF90_REAL, &
+   call nc_putAxisAttr(ncid, nd, dimids, NF90_REAL8, &
                       'longitude', &
                       "Lontitude Coordinate", &
                       "degree_east", &
@@ -224,7 +207,7 @@ subroutine create_coord(nt, time, latlon, flnm)
 
    dimids(1) = latlon%dimidy
 !--Field lat
-   call nc_putAxisAttr(ncid, nd, dimids, NF90_REAL, &
+   call nc_putAxisAttr(ncid, nd, dimids, NF90_REAL8, &
                       'latitude', &
                       "Latitude Coordinate", &
                       "degree_north", &
@@ -232,27 +215,11 @@ subroutine create_coord(nt, time, latlon, flnm)
 
    dimids(1) = latlon%dimidz
 !--Field lev
-   call nc_putAxisAttr(ncid, nd, dimids, NF90_REAL, &
+   call nc_putAxisAttr(ncid, nd, dimids, NF90_REAL8, &
                       'level', &
                       "Altitude Coordinate", &
                       "top_down", &
                       "Altitude" )
-
-   dimids(1) = latlon%dimidl
-!--Field lay
-   call nc_putAxisAttr(ncid, nd, dimids, NF90_REAL, &
-                      'layer', &
-                      "Layer Coordinate", &
-                      "top_down", &
-                      "Altitude" )
-
-   dimids(1) = latlon%dimidh
-!--Field hor
-   call nc_putAxisAttr(ncid, nd, dimids, NF90_REAL, &
-                      "hor", &
-                      "Horizontal Coordinate", &
-                      "one_level", &
-                      "Horizontal" )
 
    dimids(1) = latlon%dimidt
 !--Field time
@@ -271,13 +238,6 @@ subroutine create_coord(nt, time, latlon, flnm)
    !write lev
   !call nc_put1Dvar0(ncid, 'level', latlon%lev, 1, latlon%nlev)
    call nc_put1Dvar0(ncid, 'level', lev, 1, latlon%nlev)
-
-   !write lay
-  !call nc_put1Dvar0(ncid, 'layer', latlon%lay, 1, latlon%nlay)
-   call nc_put1Dvar0(ncid, 'layer', lay, 1, latlon%nlay)
-
-   !write hor
-   call nc_put1Dvar0(ncid, 'hor', hor, 1, 1)
 
    !write time
    call nc_put1Ddbl0(ncid, 'Time', time, 1, nt)
@@ -332,8 +292,9 @@ subroutine create_fv_core_var_attr(tile, latlon)
       long_name = trim(tile(1)%vars(i)%name)
       if((trim(tile(1)%vars(i)%name) == 'ps') .or. &
          (trim(tile(1)%vars(i)%name) == 'phis')) then
-         dimids(3) = latlon%dimidh
-         coordinates = 'Time hor latitude longitude'
+         dimids(3) = latlon%dimidt
+         nd = 3
+         coordinates = 'Time latitude longitude'
          if(trim(tile(1)%vars(i)%name) == 'ps') then
             long_name = 'surface_pressure'
             units = 'Pa'
@@ -359,7 +320,7 @@ subroutine create_fv_core_var_attr(tile, latlon)
          end if
       end if
 
-      call nc_putAttr(latlon%ncid, nd, dimids, NF90_REAL, &
+      call nc_putAttr(latlon%ncid, nd, dimids, NF90_REAL8, &
                       trim(tile(1)%vars(i)%name), &
                       trim(long_name), trim(units), &
                       trim(coordinates), missing_value)
@@ -414,8 +375,8 @@ subroutine create_sfc_data_var_attr(tile, latlon)
         dimids(3) = latlon%dimidt
         nd = 3
       else if(4 == tile(1)%vars(i)%ndims) then
-        coordinates = 'Time layer latitude longitude'
-        dimids(3) = latlon%dimidl
+        coordinates = 'Time level latitude longitude'
+        dimids(3) = latlon%dimidz
         dimids(4) = latlon%dimidt
         nd = 4
       else
@@ -427,7 +388,7 @@ subroutine create_sfc_data_var_attr(tile, latlon)
 
       long_name = trim(tile(1)%vars(i)%name)
 
-      call nc_putAttr(latlon%ncid, nd, dimids, NF90_REAL, &
+      call nc_putAttr(latlon%ncid, nd, dimids, NF90_REAL8, &
                       trim(tile(1)%vars(i)%name), &
                       trim(long_name), trim(units), &
                       trim(coordinates), missing_value)
@@ -489,7 +450,7 @@ subroutine create_fv_tracer_var_attr(tile, latlon)
         print *, 'Problem in File: ', __FILE__, ', at line: ', __LINE__
       end if
 
-      call nc_putAttr(latlon%ncid, nd, dimids, NF90_REAL, &
+      call nc_putAttr(latlon%ncid, nd, dimids, NF90_REAL8, &
                       trim(tile(1)%vars(i)%name), &
                       trim(long_name), trim(units), &
                       trim(coordinates), missing_value)
@@ -550,7 +511,7 @@ subroutine create_fv_srf_wnd_var_attr(tile, latlon)
         print *, 'Problem in File: ', __FILE__, ', at line: ', __LINE__
       end if
 
-      call nc_putAttr(latlon%ncid, nd, dimids, NF90_REAL, &
+      call nc_putAttr(latlon%ncid, nd, dimids, NF90_REAL8, &
                       trim(tile(1)%vars(i)%name), &
                       trim(long_name), trim(units), &
                       trim(coordinates), missing_value)
@@ -618,7 +579,7 @@ subroutine create_phy_data_var_attr(tile, latlon)
 
       long_name = trim(tile(1)%vars(i)%name)
 
-      call nc_putAttr(latlon%ncid, nd, dimids, NF90_REAL, &
+      call nc_putAttr(latlon%ncid, nd, dimids, NF90_REAL8, &
                       trim(tile(1)%vars(i)%name), &
                       trim(long_name), trim(units), &
                       trim(coordinates), missing_value)
@@ -733,7 +694,7 @@ subroutine process_sfc_data(tile, latlon)
   !print *, 'Enter process_sfc_data'
 
    allocate(var2d(latlon%nlon, latlon%nlat))
-   allocate(var3d(latlon%nlon, latlon%nlat, latlon%nlay))
+   allocate(var3d(latlon%nlon, latlon%nlat, latlon%nlev))
 
    do i = 1, tile(1)%nVars
       j = tile(1)%vars(i)%ndims
@@ -803,7 +764,7 @@ subroutine process_sfc_data(tile, latlon)
       else if(4 == tile(1)%vars(i)%ndims) then
          call interp3dvar4sfc(tile, latlon, var3d)
          call nc_put3Dvar(latlon%ncid, trim(tile(1)%vars(i)%name), &
-              var3d, 1, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlay)
+              var3d, 1, 1, latlon%nlon, 1, latlon%nlat, 1, latlon%nlev)
       else
          print *, 'Var ', i, ' name: <', trim(tile(1)%vars(i)%dimnames(1)), &
                   '>, ndims = ', tile(1)%vars(i)%ndims
@@ -1219,14 +1180,14 @@ subroutine interp3dvar4sfc(tile, latlon, var3d)
 
   type(tilegrid), dimension(6), intent(in) :: tile
   type(latlongrid), intent(in) :: latlon
-  real(kind=8), dimension(latlon%nlon, latlon%nlat, latlon%nlay), intent(out) :: var3d
+  real(kind=8), dimension(latlon%nlon, latlon%nlat, latlon%nlev), intent(out) :: var3d
 
   integer :: i, j, k, n, ik, jk, m
   real(kind=8) :: w
 
   do jk = 1, latlon%nlat
   do ik = 1, latlon%nlon
-     do k = 1, latlon%nlay
+     do k = 1, latlon%nlev
         var3d(ik, jk, k) = 0.0
      end do
 
@@ -1236,7 +1197,7 @@ subroutine interp3dvar4sfc(tile, latlon, var3d)
         j = latlon%jlat(ik, jk, m)
         w = latlon%wgt(ik, jk, m)
 
-        do k = 1, latlon%nlay
+        do k = 1, latlon%nlev
            var3d(ik, jk, k) = var3d(ik, jk, k) + w*tile(n)%var3d(i, j, k)
         end do
      end do

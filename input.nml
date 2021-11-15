@@ -1,5 +1,5 @@
 &control_param
- generate_weights = .false.
+ generate_weights = .true.
  dirname = '/work/noaa/gsienkf/weihuang/jedi/src/mitgcm/MITgcm/verification/fizhi-cs-aqualev20/run/mnc_test_0001/',
 
  output_flnm = 'grid_latlon.nc'
@@ -10,6 +10,6 @@
  npnt = 4
 
  num_types = 1,
- data_types = 'state.0000000000.t00',
+ data_types = 'grid.t00',
 /
 
