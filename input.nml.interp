@@ -1,0 +1,16 @@
+&control_param
+ generate_weights = .false.
+ dirname = '/work/noaa/gsienkf/weihuang/jedi/case_study/sondes/Data/bkg/'
+
+ output_flnm = 'grid_latlon.nc'
+ wgt_flnm = 'weights.nc'
+
+ nlon = 360
+ nlat = 180
+ npnt = 4
+
+ num_types = 5,
+ data_types = 'fv_core.res.tile', 'sfc_data.tile', 'fv_tracer.res.tile', 'fv_srf_wnd.res.tile', 'phy_data.tile',
+/
+ data_types = 'fv_core.res.tile',
+

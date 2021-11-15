@@ -1,0 +1,61 @@
+####################################################
+
+LN      =       ln -sf
+MAKE    =       make -i -r
+RM      =       /bin/rm -f
+MV      =       /bin/mv -f
+CP      =       /bin/cp -f
+AR      =       ar ru
+M4      =       m4 -B12000
+RANLIB	=       echo
+
+.SUFFIXES: .F90 .f90 .o .f .c .cc
+
+####################################################
+
+NETCDFPATH      =       /work/noaa/da/grubin/opt/modules/intel-2020/impi-2020/netcdf/4.7.4
+HDF5PATH        =       /work/noaa/da/grubin/opt/modules/intel-2020/impi-2020/hdf5/1.12.0
+
+####################################################
+
+NETCDF_LIB      =       -L$(NETCDFPATH)/lib -lnetcdff -lnetcdf
+HDF5_LIB        =       -L$(HDF5PATH)/lib -lhdf5_hl -lhdf5
+
+DEBUGFLAGS	=	 
+UNDERSCORE	=	-DUNDERSCORE 
+
+FC_INCLUDES	=	-I. -I$(NETCDFPATH)/include 
+FC_COMPILE_OPTIONS = 	-cpp #-fdefault-real-8
+
+FC_OPTIMIZATIONS =	-g # -O3 
+
+####################################################
+
+FC		=       ifort
+FFLAGS		=       $(FC_US_FLAGS) $(FC_INCLUDES) $(FC_COMPILE_OPTIONS) $(FC_OPTIMIZATIONS)
+
+LDFLAGS		=       
+
+CPP		=       /usr/bin/cpp -C -P 
+CPPFLAGS	=	-I. $(DEBUGFLAGS)
+
+LOC_LIBS	=	$(NETCDF_LIB) $(HDF5_LIB) -lm -lc
+
+RANLIB		=	ranlib
+####################################################
+
+#There is probably no reason to modify these rules
+
+.F90.o:
+	$(RM) $*.o $*.f90
+	$(CPP) $(CPPFLAGS) $*.F90  > $*.f90
+	$(FC) -c $(FFLAGS) $*.f90
+
+.F90.f90:
+	$(RM) $*.f90
+	$(CPP) $(CPPFLAGS) $*.F90 > $*.f90
+
+.f.o:
+	$(RM) $*.o
+	$(FC) -c $(FFLAGS) $*.f
+

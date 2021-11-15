@@ -1,0 +1,15 @@
+&control_param
+ generate_weights = .false.
+ dirname = '/work/noaa/gsienkf/weihuang/jedi/src/mitgcm/MITgcm/verification/fizhi-cs-aqualev20/run/mnc_test_0001/',
+
+ output_flnm = 'grid_latlon.nc'
+ wgt_flnm = 'weights.nc'
+
+ nlon = 360
+ nlat = 180
+ npnt = 4
+
+ num_types = 1,
+ data_types = 'state.0000000000.t00',
+/
+
